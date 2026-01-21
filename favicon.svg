@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="48" fill="#000000" stroke="#DC143C" stroke-width="3"/>
+  
+  <!-- Needle -->
+  <line x1="30" y1="70" x2="50" y2="25" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Needle Eye -->
+  <circle cx="50" cy="25" r="3" fill="none" stroke="#FFD700" stroke-width="1.5"/>
+  
+  <!-- Thread Curve -->
+  <path d="M 50 25 Q 65 35, 70 50 Q 73 65, 65 75" fill="none" stroke="#DC143C" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Decorative Stitches -->
+  <line x1="40" y1="45" x2="45" y2="50" stroke="#DC143C" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="35" y1="55" x2="40" y2="60" stroke="#DC143C" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="32" y1="65" x2="37" y2="70" stroke="#DC143C" stroke-width="1.5" stroke-linecap="round"/>
+  
+  <!-- PR Letters (stylized) -->
+  <text x="50" y="90" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#FFD700" text-anchor="middle">PR</text>
+</svg>
