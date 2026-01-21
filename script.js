@@ -3,11 +3,21 @@
 // Interactive Features & Animations
 // ===================================
 
-// Initialize AOS (Animate On Scroll)
+// ===== EMAILJS INITIALIZATION =====
+// Initialize EmailJS with your Public Key
+(function() {
+    emailjs.init("0rWdxQMEG9eAM-jAr"); // Your EmailJS Public Key
+})();
+
+// Initialize AOS (Animate On Scroll) - Disable on video section
 AOS.init({
     duration: 1000,
     once: true,
-    offset: 100
+    offset: 100,
+    disable: function() {
+        // Disable AOS on elements with video-wrapper class
+        return false;
+    }
 });
 
 // ===== NAVIGATION =====
@@ -77,6 +87,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+// ===== VIDEO SLIDER FUNCTIONALITY =====
+// Video slider code removed as video section has been removed from the page
+
 // ===== TESTIMONIALS SLIDER =====
 let currentTestimonialIndex = 0;
 const testimonialCards = document.querySelectorAll('.testimonial-card');
@@ -132,42 +145,31 @@ if (prevBtn && nextBtn) {
 window.addEventListener('resize', updateTestimonialSlider);
 
 // ===== GALLERY LIGHTBOX =====
-const galleryItems = document.querySelectorAll('.gallery-item');
-const lightbox = document.getElementById('lightbox');
-const lightboxImage = document.getElementById('lightboxImage');
-const lightboxClose = document.getElementById('lightboxClose');
+// Lightbox functionality removed - replaced with Instagram feed
 
-galleryItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const img = item.querySelector('img');
-        lightboxImage.src = img.src;
-        lightbox.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    });
-});
+// ===== INSTAGRAM VIDEO AUTO-PLAY =====
+// Handle auto-play for Instagram videos when they come into viewport
+const instagramVideos = document.querySelectorAll('.instagram-video-item video');
 
-if (lightboxClose) {
-    lightboxClose.addEventListener('click', closeLightbox);
-}
-
-if (lightbox) {
-    lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) {
-            closeLightbox();
+const videoObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+            video.play().catch(e => console.log('Video autoplay prevented:', e));
+        } else {
+            video.pause();
         }
     });
-}
+}, {
+    threshold: 0.5 // Play when 50% of video is visible
+});
 
-function closeLightbox() {
-    lightbox.classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-// Close lightbox with Escape key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-        closeLightbox();
-    }
+instagramVideos.forEach(video => {
+    videoObserver.observe(video);
+    
+    // Ensure videos are muted for autoplay
+    video.muted = true;
+    video.playsInline = true;
 });
 
 // ===== LEAD FORM SUBMISSION =====
@@ -209,24 +211,57 @@ if (leadForm) {
             return;
         }
 
-        // Simulate form submission (In production, send to backend)
-        console.log('Form Data:', formData);
+        // Disable submit button and show loading state
+        const submitButton = leadForm.querySelector('.btn-submit');
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
-        // Show success message
-        showToast('Thank you! We will contact you soon. 🎉', 'success');
+        // Prepare template parameters for EmailJS
+        const templateParams = {
+            from_name: formData.name,
+            from_email: formData.email,
+            phone: formData.phone,
+            interest: formData.interest,
+            message: formData.message || 'No additional message provided',
+            to_email: 'prboutique.trainingpvtld@gmail.com' // Your email where you want to receive inquiries
+        };
 
-        // Reset form
-        leadForm.reset();
+        // Send email using EmailJS
+        emailjs.send('swarup_test', 'template_g1o4p3j', templateParams)
+            .then(function(response) {
+                console.log('SUCCESS!', response.status, response.text);
+                
+                // Show success message
+                showToast('Thank you! We will contact you soon. 🎉', 'success');
 
-        // Optional: Send to WhatsApp
-        setTimeout(() => {
-            const whatsappMessage = `Hi! I'm ${formData.name}. I'm interested in ${formData.interest}. Phone: ${formData.phone}, Email: ${formData.email}`;
-            const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent(whatsappMessage)}`;
-            
-            if (confirm('Would you like to continue this conversation on WhatsApp?')) {
-                window.open(whatsappUrl, '_blank');
-            }
-        }, 2000);
+                // Reset form
+                leadForm.reset();
+
+                // Reset button
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+
+                // Optional: Send to WhatsApp
+                setTimeout(() => {
+                    const whatsappMessage = `Hi! I'm ${formData.name}. I'm interested in ${formData.interest}. Phone: ${formData.phone}, Email: ${formData.email}`;
+                    const whatsappUrl = `https://wa.me/919000424247?text=${encodeURIComponent(whatsappMessage)}`;
+                    
+                    if (confirm('Would you like to continue this conversation on WhatsApp?')) {
+                        window.open(whatsappUrl, '_blank');
+                    }
+                }, 2000);
+
+            }, function(error) {
+                console.log('FAILED...', error);
+                
+                // Show error message
+                showToast('Oops! Something went wrong. Please try again or call us directly.', 'error');
+                
+                // Reset button
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            });
     });
 }
 
@@ -408,12 +443,6 @@ document.head.appendChild(style);
 
 // ===== PAGE LOAD ANIMATION =====
 window.addEventListener('load', () => {
-    document.body.style.opacity = '0';
-    setTimeout(() => {
-        document.body.style.transition = 'opacity 0.5s ease';
-        document.body.style.opacity = '1';
-    }, 100);
-    
     // Initialize number animation after page load
     setTimeout(animateNumbers, 500);
 });
