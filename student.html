@@ -544,7 +544,15 @@
     </div>
 
     <script>
-        // Password Toggle
+        // ============================================
+        // CONFIGURATION - REPLACE WITH YOUR GOOGLE APPS SCRIPT URL
+        // ============================================
+        const API_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE';
+        // Example: 'https://script.google.com/macros/s/AKfycbxxx.../exec'
+        
+        // ============================================
+        // PASSWORD TOGGLE
+        // ============================================
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
 
@@ -555,7 +563,9 @@
             this.classList.toggle('fa-eye-slash');
         });
 
-        // Alert Function
+        // ============================================
+        // ALERT FUNCTION
+        // ============================================
         function showAlert(message, type) {
             const alert = document.getElementById('alert');
             alert.textContent = message;
@@ -566,11 +576,31 @@
             }, 5000);
         }
 
-        // Form Submit Handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // ============================================
+        // CHECK IF ALREADY LOGGED IN
+        // ============================================
+        window.addEventListener('DOMContentLoaded', function() {
+            const loggedInStudent = localStorage.getItem('prb_student');
+            if (loggedInStudent) {
+                // Redirect to dashboard if already logged in
+                window.location.href = 'student-dashboard.html';
+            }
+        });
+
+        // ============================================
+        // FORM SUBMIT HANDLER - LOGIN
+        // ============================================
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            // Check if API URL is configured
+            if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                showAlert('⚠️ Please configure your Google Apps Script URL in the code', 'error');
+                console.error('Configure API_URL at the top of the script');
+                return;
+            }
+            
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const remember = document.getElementById('remember').checked;
 
@@ -587,29 +617,125 @@
                 return;
             }
 
-            // Here you would typically make an API call to authenticate
-            // For now, we'll show a success message
-            showAlert('Login functionality will be connected to backend', 'success');
-            
-            // Simulate login process
-            console.log('Login attempt:', { email, remember });
+            // Show loading state
+            const loginBtn = document.querySelector('.btn-login');
+            const originalBtnText = loginBtn.innerHTML;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            loginBtn.disabled = true;
+
+            try {
+                // Call Google Apps Script API
+                const formData = new FormData();
+                formData.append('action', 'login');
+                formData.append('email', email);
+                formData.append('password', password);
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Login successful
+                    showAlert('✅ Login successful! Redirecting...', 'success');
+                    
+                    // Store student data in localStorage
+                    localStorage.setItem('prb_student', JSON.stringify(result.data));
+                    
+                    // Store remember me preference
+                    if (remember) {
+                        localStorage.setItem('prb_remember', 'true');
+                    }
+                    
+                    // Redirect to dashboard after 1 second
+                    setTimeout(() => {
+                        window.location.href = 'student-dashboard.html';
+                    }, 1000);
+                } else {
+                    // Login failed
+                    showAlert('❌ ' + result.message, 'error');
+                    loginBtn.innerHTML = originalBtnText;
+                    loginBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('❌ Connection error. Please check your internet and try again.', 'error');
+                loginBtn.innerHTML = originalBtnText;
+                loginBtn.disabled = false;
+            }
         });
 
-        // Social Login Handlers
+        // ============================================
+        // SOCIAL LOGIN HANDLERS
+        // ============================================
         document.getElementById('googleLogin').addEventListener('click', function() {
-            showAlert('Google login will be integrated soon', 'error');
+            showAlert('🔜 Google login will be integrated soon', 'error');
         });
 
         document.getElementById('facebookLogin').addEventListener('click', function() {
-            showAlert('Facebook login will be integrated soon', 'error');
+            showAlert('🔜 Facebook login will be integrated soon', 'error');
         });
 
-        // Forgot Password Handler
-        document.querySelector('.forgot-password').addEventListener('click', function(e) {
+        // ============================================
+        // FORGOT PASSWORD HANDLER
+        // ============================================
+        document.querySelector('.forgot-password').addEventListener('click', async function(e) {
             if (this.textContent === 'Forgot Password?') {
                 e.preventDefault();
-                showAlert('Password reset functionality will be available soon. Please contact us.', 'error');
+                
+                // Check if API URL is configured
+                if (API_URL === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') {
+                    showAlert('⚠️ Please configure your Google Apps Script URL', 'error');
+                    return;
+                }
+                
+                const email = prompt('Enter your registered email address:');
+                
+                if (!email) {
+                    return;
+                }
+                
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showAlert('Please enter a valid email address', 'error');
+                    return;
+                }
+                
+                showAlert('⏳ Sending password reset email...', 'success');
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('action', 'forgotPassword');
+                    formData.append('email', email);
+
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showAlert('✅ ' + result.message, 'success');
+                    } else {
+                        showAlert('❌ ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Password reset error:', error);
+                    showAlert('❌ Connection error. Please try again.', 'error');
+                }
             }
+        });
+
+        // ============================================
+        // CONTACT US LINK
+        // ============================================
+        document.querySelector('.login-footer a[href="#lead-form"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = 'index.html#lead-form';
         });
     </script>
 </body>
